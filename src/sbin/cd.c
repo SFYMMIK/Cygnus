@@ -18,7 +18,7 @@
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
  */
-#include "fat16.h"
+#include "../fat16.h"
 #include <stddef.h>
 
 int cmd_cd(int argc, char **argv) {

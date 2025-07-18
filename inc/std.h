@@ -24,5 +24,6 @@
 void print(const char *s);
 void putchar(char c);
 void gets(char *buf, int max);
+char serial_read(void);
 
 #endif

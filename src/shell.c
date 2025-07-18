@@ -18,8 +18,8 @@
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
  */
-#include "inc/fat16.h"
-#include "inc/std.h"
+#include "fat16.h"
+#include "../inc/std.h"
 #include <string.h>
 
 extern int ls_main(int, char **);

@@ -1,5 +1,5 @@
 /*
- * [Cygnus] - [inc/shell.h]
+ * [Cygnus] - [inc/string.h]
  *
  * Copyright (C) [2025] [Szymon Grajner]
  *
@@ -18,9 +18,21 @@
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
  */
-#ifndef SHELL_H
-#define SHELL_H
+#ifndef STRING_H
+#define STRING_H
 
-void shell_loop(void);
+#include <stddef.h>
 
-#endif // SHELL_H
+void *memset(void *s, int c, size_t n);
+void *memcpy(void *d, const void *s, size_t n);
+int strcmp(const char *a, const char *b);
+size_t strlen(const char *s);
+char *strcpy(char *dst, const char *src);
+char *strncpy(char *dst, const char *src, size_t n);
+char *strchr(const char *s, int c);
+char *strrchr(const char *s, int c);
+char *strtok(char *str, const char *delim); // if i add it
+size_t strspn(const char *s, const char *accept);
+size_t strcspn(const char *s, const char *reject);
+
+#endif

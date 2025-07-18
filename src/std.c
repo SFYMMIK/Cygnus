@@ -18,20 +18,23 @@
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
  */
-#include "std.h"
+#include "../inc/std.h"
 #include <stddef.h>
 #include <stdint.h>
+
 void print(const char *s) { while (*s) putchar(*s++); }
+
 void gets(char *buf, int max) {
     int i = 0;
     while (i < max - 1) {
-        char c = serial_read(); // Replace with getchar if you have it
+        char c = serial_read();  // <-- just a call, not a definition
         if (c == '\n' || c == '\r') break;
         if (c == 8 && i > 0) { print("\b \b"); --i; continue; }
         buf[i++] = c; putchar(c);
     }
     buf[i] = 0;
 }
+
 void putchar(char c) {
     // For real hardware: write to VGA
     // For QEMU serial: outb(0x3F8, c)

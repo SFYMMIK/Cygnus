@@ -18,9 +18,9 @@
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
  */
-#include "std.h"
-#include "fs.h"
-#include "shell.h"
+#include "../inc/std.h"
+#include "fat16.h"
+#include "../inc/shell.h"
 
 void kmain(void) {
     serial_init();            // bring up COM1

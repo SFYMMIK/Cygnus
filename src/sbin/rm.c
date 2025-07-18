@@ -19,7 +19,7 @@
  * limitations under the Licence.
  */
 #include "../fat16.h"
-#include "../std.h"
+#include "../../inc/std.h"
 
 int main(int argc, char **argv) {
     if (argc < 2) {

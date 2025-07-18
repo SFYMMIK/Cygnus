@@ -1,10 +1,10 @@
 CC = gcc
 CFLAGS = -m32 -ffreestanding -O2 -Wall -Wextra -fno-pie -no-pie -fno-stack-protector -Iinc
 
-KERNEL_SRC = src/shell.c src/std.c src/fat16.c
-SBIN_SRC = src/sbin/ls.c src/sbin/cat.c      # Add more commands here: src/sbin/edit.c src/sbin/mkdir.c ...
+KERNEL_SRC = src/shell.c src/std.c src/string.c src/fat16.c
+SBIN_SRC = src/sbin/ls.c src/sbin/cat.c    # Add more: src/sbin/edit.c src/sbin/mkdir.c ...
 
-OBJS = $(KERNEL_SRC:.c=.o) $(SBIN_SRC:.c=.o)
+OBJS = boot.o $(KERNEL_SRC:.c=.o) $(SBIN_SRC:.c=.o)
 
 .PHONY: all clean iso run
 
@@ -12,6 +12,9 @@ all: kernel.elf
 
 kernel.elf: $(OBJS)
 	$(CC) $(CFLAGS) -nostdlib -T linker.ld -o $@ $(OBJS)
+
+boot.o: boot.s
+	$(CC) $(CFLAGS) -c boot.s -o boot.o
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

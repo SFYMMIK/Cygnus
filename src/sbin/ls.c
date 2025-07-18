@@ -18,7 +18,7 @@
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
  */
-#include "../../inc/fat16.h"
+#include "../fat16.h"
 #include "../../inc/std.h"
 
 int ls_main(int argc, char **argv) {
