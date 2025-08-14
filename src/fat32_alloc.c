@@ -1,5 +1,5 @@
 /*
- * [Cygnus] - [inc/std.h]
+ * [Cygnus] - [src/fat32_alloc.c]
  *
  * Copyright (C) [2025] [Szymon Grajner]
  *
@@ -18,28 +18,34 @@
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
  */
-#ifndef STD_H
-#define STD_H
-
-#include <stdarg.h>
+#include <stddef.h>
 #include <stdint.h>
 
-/* I/O na konsolę (UART) */
-void print(const char *s);     /* drukuje łańcuch (bez formatowania) */
-void putchar(char c);          /* drukuje 1 znak */
-char serial_read(void);        /* blokujący odczyt znaku z UART */
-void gets(char *buf, int max); /* bardzo prosty input (bez historii/edycji) */
+#ifndef FAT32_ARENA_SIZE
+#define FAT32_ARENA_SIZE (128 * 1024) /* 128 KiB na struktury FAT32 */
+#endif
 
-/* Minimalny printf dla jądra (UART):
- * wspiera: %s %c %d %u %x %p oraz %%.
- */
-void kprintf(const char *fmt, ...);
+/* Wyrównujemy do 16 bajtów dla bezpieczeństwa. */
+static uint8_t g_fat32_arena[FAT32_ARENA_SIZE];
+static size_t  g_fat32_off = 0;
 
-/* Formatowanie do bufora:
- * ksnprintf(buf, sz, fmt, ...) zwraca liczbę wypisanych znaków (bez NUL),
- * obcina, jeżeli nie mieścimy się w buforze.
- */
-int kvsnprintf(char *dst, int dstsz, const char *fmt, va_list ap);
-int ksnprintf(char *dst, int dstsz, const char *fmt, ...);
+static inline size_t align_up(size_t x, size_t a) {
+    return (x + (a - 1)) & ~(a - 1);
+}
 
-#endif /* STD_H */
+/* API oczekiwane przez fat32.c */
+void* fat32_malloc(size_t n) {
+    if (n == 0) n = 1;
+    size_t off = align_up(g_fat32_off, 16);
+    size_t end = off + align_up(n, 16);
+    if (end > FAT32_ARENA_SIZE) {
+        return NULL; /* brak miejsca */
+    }
+    void* p = (void*)(g_fat32_arena + off);
+    g_fat32_off = end;
+    return p;
+}
+
+void fat32_free(void* p) {
+    (void)p; /* no-op – arena jest jednorazowa */
+}

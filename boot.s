@@ -1,5 +1,5 @@
 #
-# [Cygnus] - [boot.s]
+# [Cygnus] - [src/kernel.c]
 #
 # Copyright (C) [2025] [Szymon Grajner]
 #
@@ -18,26 +18,49 @@
 # See the Licence for the specific language governing permissions and
 # limitations under the Licence.
 #
-    .section .multiboot_header
-    .align 4
-    /* Multiboot1 header: magic, flags=0, checksum */
-    .long 0x1BADB002
-    .long 0x0
-    .long -(0x1BADB002 + 0x0)
+    .code32
 
-    .text
-    .global start
+    /* ===== Multiboot v1 header (ALIGN | MEMINFO) ===== */
+    .section .multiboot, "a"
+    .align 4
+    .set MB_MAGIC,    0x1BADB002
+    .set MB_FLAGS,    (1 << 0) | (1 << 1)
+    .set MB_CHECKSUM, -(MB_MAGIC + MB_FLAGS)
+    .long MB_MAGIC
+    .long MB_FLAGS
+    .long MB_CHECKSUM
+
+    /* ===== Wejście jądra ===== */
+    .section .text
+    .globl start
+    .type  start, @function
+    .extern kmain
+
 start:
-    cli
+    cli                 /* wyłączamy przerwania */
+    cld                 /* DF=0 dla operacji string */
     movl $stack_top, %esp
+    xorl %ebp, %ebp
+
+    /* Jeśli kiedyś chcemy przekazać magic/mbi:
+       ; pushl %ebx     ; ptr do multiboot info
+       ; pushl %eax     ; magic 0x2BADB002
+       ; call kmain
+       ; add $8, %esp
+    */
     call kmain
 
 .hang:
     hlt
     jmp .hang
 
+/* Zamykamy symbol w tej samej sekcji, żeby .size miało stałą wartość */
+.Lstart_end:
+    .size start, .Lstart_end - start
+
+    /* ===== Stos (BSS) ===== */
     .section .bss
-    .align 4
+    .align 16
 stack_bottom:
-    .skip 8192
+    .skip 16384         /* 16 KiB */
 stack_top:

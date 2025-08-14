@@ -22,71 +22,63 @@
 #include <stdint.h>
 
 void *memset(void *s, int c, size_t n) {
-    uint8_t *p = s;
+    uint8_t *p = (uint8_t*)s;
     while (n--) *p++ = (uint8_t)c;
     return s;
 }
 void *memcpy(void *d, const void *s, size_t n) {
-    uint8_t *dp = d; const uint8_t *sp = s;
+    uint8_t *dp = (uint8_t*)d; const uint8_t *sp = (const uint8_t*)s;
     while (n--) *dp++ = *sp++;
     return d;
 }
-int strcmp(const char *a, const char *b) {
-    while (*a && (*a == *b)) a++, b++;
-    return *(const unsigned char*)a - *(const unsigned char*)b;
+int memcmp(const void *a, const void *b, size_t n) {
+    const uint8_t *pa = (const uint8_t*)a, *pb = (const uint8_t*)b;
+    for (; n; --n, ++pa, ++pb) {
+        if (*pa != *pb) return (int)*pa - (int)*pb;
+    }
+    return 0;
 }
+
 size_t strlen(const char *s) {
-    size_t n = 0; while (*s++) n++; return n;
+    const char *p = s; while (*p) ++p; return (size_t)(p - s);
 }
-char *strcpy(char *dst, const char *src) {
-    char *ret = dst;
-    while ((*dst++ = *src++));
-    return ret;
+char *strcpy(char *d, const char *s) {
+    char *r = d; while ((*d++ = *s++)); return r;
 }
-char *strncpy(char *dst, const char *src, size_t n) {
-    size_t i;
-    for (i = 0; i < n && src[i]; i++) dst[i] = src[i];
-    for (; i < n; i++) dst[i] = 0;
-    return dst;
+char *strncpy(char *d, const char *s, size_t n) {
+    size_t i=0; for (; i<n && s[i]; ++i) d[i]=s[i];
+    for (; i<n; ++i) d[i]=0;
+    return d;
+}
+int strcmp(const char *a, const char *b) {
+    while (*a && *b && *a == *b) { ++a; ++b; }
+    return (int)((unsigned char)*a) - (int)((unsigned char)*b);
+}
+int strncmp(const char *a, const char *b, size_t n) {
+    for (size_t i=0; i<n; ++i) {
+        unsigned char ca = (unsigned char)a[i];
+        unsigned char cb = (unsigned char)b[i];
+        if (ca != cb || ca == 0 || cb == 0) return (int)ca - (int)cb;
+    }
+    return 0;
 }
 char *strchr(const char *s, int c) {
-    while (*s) {
-        if (*s == (char)c) return (char*)s;
-        s++;
-    }
-    return c == 0 ? (char*)s : NULL;
+    while (*s) { if (*s == (char)c) return (char*)s; ++s; }
+    return (c == 0) ? (char*)s : NULL;
 }
-char *strrchr(const char *s, int c) {
-    const char *last = NULL;
-    do { if (*s == (char)c) last = s; } while (*s++);
-    return (char*)last;
-}
-char *strtok(char *str, const char *delim) {
+
+/* Prosty strtok bez wsparcia dla wielu delimiterów – wystarcza na whitespace */
+static int is_space(char c){ return c==' ' || c=='\t' || c=='\n' || c=='\r'; }
+char *strtok(char *s, const char *delim) {
     static char *save;
-    if (str) save = str;
+    if (!delim || delim[0]==0 || delim[1]!=0) { /* wspieramy pojedynczy delim */ }
+    char d = delim ? delim[0] : ' ';
+    if (s) save = s;
     if (!save) return NULL;
-    char *s = save + strspn(save, delim);
-    if (!*s) { save = NULL; return NULL; }
-    char *e = s + strcspn(s, delim);
-    if (*e) *e++ = 0;
-    save = e;
-    return s;
-}
-size_t strspn(const char *s, const char *accept) {
-    const char *p; size_t n = 0;
-    while (*s) {
-        for (p = accept; *p && *p != *s; p++);
-        if (!*p) break;
-        s++; n++;
-    }
-    return n;
-}
-size_t strcspn(const char *s, const char *reject) {
-    const char *p; size_t n = 0;
-    while (*s) {
-        for (p = reject; *p && *p != *s; p++);
-        if (*p) break;
-        s++; n++;
-    }
-    return n;
+    while (*save && (is_space(*save) || *save==d)) ++save;
+    if (!*save) { save = NULL; return NULL; }
+    char *start = save;
+    while (*save && !is_space(*save) && *save!=d) ++save;
+    if (*save) { *save++ = 0; }
+    return start;
 }

@@ -1,5 +1,5 @@
 /*
- * [Cygnus] - [inc/std.h]
+ * [Cygnus] - [inc/serial.h]
  *
  * Copyright (C) [2025] [Szymon Grajner]
  *
@@ -18,28 +18,36 @@
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
  */
-#ifndef STD_H
-#define STD_H
+#ifndef CYGNUS_SERIAL_H
+#define CYGNUS_SERIAL_H
 
-#include <stdarg.h>
 #include <stdint.h>
 
-/* I/O na konsolę (UART) */
-void print(const char *s);     /* drukuje łańcuch (bez formatowania) */
-void putchar(char c);          /* drukuje 1 znak */
-char serial_read(void);        /* blokujący odczyt znaku z UART */
-void gets(char *buf, int max); /* bardzo prosty input (bez historii/edycji) */
+/* Domyślna baza dla COM1 */
+#define COM1_BASE 0x3F8
 
-/* Minimalny printf dla jądra (UART):
- * wspiera: %s %c %d %u %x %p oraz %%.
+/* Inicjalizacja UART:
+ * - ustawiamy bazę portu,
+ * - konfigurujemy 115200 8N1,
+ * - czyścimy FIFO.
  */
-void kprintf(const char *fmt, ...);
+void serial_init(uint16_t base);
 
-/* Formatowanie do bufora:
- * ksnprintf(buf, sz, fmt, ...) zwraca liczbę wypisanych znaków (bez NUL),
- * obcina, jeżeli nie mieścimy się w buforze.
+/* Jeżeli mamy kilka portów, możemy zmienić bazę „w locie”. */
+void serial_set_base(uint16_t base);
+
+/* Wypisanie jednego znaku (blokujące).
+ * Dla wygody wysyłamy CR przed LF (tj. '\r' przed '\n').
  */
-int kvsnprintf(char *dst, int dstsz, const char *fmt, va_list ap);
-int ksnprintf(char *dst, int dstsz, const char *fmt, ...);
+void serial_write_char(char c);
 
-#endif /* STD_H */
+/* Wypisanie łańcucha znaków (blokujące). */
+void serial_write(const char *s);
+
+/* Czy jest znak do odczytu? Zwracamy !=0, jeżeli tak. */
+int  serial_can_read(void);
+
+/* Odczyt jednego znaku (blokujący). */
+char serial_read(void);
+
+#endif /* CYGNUS_SERIAL_H */

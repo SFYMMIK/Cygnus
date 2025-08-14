@@ -1,5 +1,5 @@
 /*
- * [Cygnus] - [inc/std.h]
+ * [Cygnus] - [src/usb_core.c]
  *
  * Copyright (C) [2025] [Szymon Grajner]
  *
@@ -18,28 +18,18 @@
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
  */
-#ifndef STD_H
-#define STD_H
+#include "../../inc/usb/usb_core.h"
+#include "../../inc/usb/usb_types.h"
 
-#include <stdarg.h>
-#include <stdint.h>
+static usb_hc_t* h_usb_hc_list = NULL;
 
-/* I/O na konsolę (UART) */
-void print(const char *s);     /* drukuje łańcuch (bez formatowania) */
-void putchar(char c);          /* drukuje 1 znak */
-char serial_read(void);        /* blokujący odczyt znaku z UART */
-void gets(char *buf, int max); /* bardzo prosty input (bez historii/edycji) */
+void usb_register_hc(usb_hc_t* hc) {
+  hc->next = g_usb_hc_list;
+  g_usb_hc_list = hc;
+  klog("usb", "registered HC kind=%d impl=%p\n", hc->kind, hc->impl);
+}
 
-/* Minimalny printf dla jądra (UART):
- * wspiera: %s %c %d %u %x %p oraz %%.
- */
-void kprintf(const char *fmt, ...);
-
-/* Formatowanie do bufora:
- * ksnprintf(buf, sz, fmt, ...) zwraca liczbę wypisanych znaków (bez NUL),
- * obcina, jeżeli nie mieścimy się w buforze.
- */
-int kvsnprintf(char *dst, int dstsz, const char *fmt, va_list ap);
-int ksnprintf(char *dst, int dstsz, const char *fmt, ...);
-
-#endif /* STD_H */
+void usb_core_init(void) {
+  klog("usb", "USB core online. Waiting for HCs to register...\n");
+ // W sekwencji boot: wywołaj xhci_probe_all(); ehci_probe_all(); później enumeracja.
+}

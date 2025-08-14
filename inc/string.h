@@ -18,21 +18,21 @@
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
  */
-#ifndef STRING_H
-#define STRING_H
+#ifndef CYGNUS_STRING_H
+#define CYGNUS_STRING_H
 
 #include <stddef.h>
 
-void *memset(void *s, int c, size_t n);
-void *memcpy(void *d, const void *s, size_t n);
-int strcmp(const char *a, const char *b);
-size_t strlen(const char *s);
-char *strcpy(char *dst, const char *src);
-char *strncpy(char *dst, const char *src, size_t n);
-char *strchr(const char *s, int c);
-char *strrchr(const char *s, int c);
-char *strtok(char *str, const char *delim); // if i add it
-size_t strspn(const char *s, const char *accept);
-size_t strcspn(const char *s, const char *reject);
+void *memcpy(void *__restrict dst, const void *__restrict src, size_t n);
+void *memmove(void *dst, const void *src, size_t n);
+void *memset(void *dst, int c, size_t n);
+int memcmp(const void *a, const void *b, size_t n);
 
-#endif
+size_t strlen(const char *s);
+char *strcpy(char *__restrict dst, const char *__restrict src);
+char *strncpy(char *__restrict dst, const char *__restrict src, size_t n);
+int strcmp(const char *a, const char *b);
+int strncmp(const char *a, const char *b, size_t n); /* <-- ważne */
+char *strcat(char *__restrict dst, const char *__restrict src);
+
+#endif /* CYGNUS_STRING_H */

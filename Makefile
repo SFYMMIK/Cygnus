@@ -1,33 +1,54 @@
-CC = gcc
-CFLAGS = -m32 -ffreestanding -O2 -Wall -Wextra -fno-pie -no-pie -fno-stack-protector -Iinc
+# [Cygnus] - Makefile (boot.s w katalogu głównym)
 
-KERNEL_SRC = src/shell.c src/std.c src/string.c src/fat16.c
-SBIN_SRC = src/sbin/ls.c src/sbin/cat.c    # Add more: src/sbin/edit.c src/sbin/mkdir.c ...
+CC      = i686-elf-gcc
 
-OBJS = boot.o $(KERNEL_SRC:.c=.o) $(SBIN_SRC:.c=.o)
+CFLAGS  = -ffreestanding -O2 -Wall -Wextra -std=gnu99 -Iinc -Isrc
+LDFLAGS = -T linker.ld -nostdlib
 
-.PHONY: all clean iso run
+# C-sources
+SRC = \
+    src/kernel.c \
+    src/disk.c \
+    src/fat32.c \
+    src/fat32_alloc.c \
+    src/serial.c \
+    src/io.c \
+    src/string.c \
+    src/std.c
 
-all: kernel.elf
+# Twój start w root:
+ASM_S = boot.s
 
-kernel.elf: $(OBJS)
-	$(CC) $(CFLAGS) -nostdlib -T linker.ld -o $@ $(OBJS)
+OBJ  = $(SRC:.c=.o) $(ASM_S:.s=.o)
 
-boot.o: boot.s
-	$(CC) $(CFLAGS) -c boot.s -o boot.o
+KERNEL_BIN = kernel.elf
+ISO_NAME   = cygnus.iso
 
+all: $(ISO_NAME)
+
+$(ISO_NAME): $(KERNEL_BIN)
+	@mkdir -p iso/boot/grub
+	cp $(KERNEL_BIN) iso/boot/kernel.elf
+	@echo 'set timeout=0'                  >  iso/boot/grub/grub.cfg
+	@echo 'set default=0'                  >> iso/boot/grub/grub.cfg
+	@echo 'menuentry "Cygnus" {'           >> iso/boot/grub/grub.cfg
+	@echo '  multiboot /boot/kernel.elf'   >> iso/boot/grub/grub.cfg
+	@echo '  boot'                         >> iso/boot/grub/grub.cfg
+	@echo '}'                              >> iso/boot/grub/grub.cfg
+	grub-mkrescue -o $(ISO_NAME) iso
+
+$(KERNEL_BIN): $(OBJ)
+	$(CC) $(LDFLAGS) -o $@ $(OBJ) -lgcc
+
+# C → o
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# GAS .s → o (root/boot.s → boot.o)
+%.o: %.s
+	$(CC) -c $< -o $@
+
 clean:
-	rm -f *.o src/*.o src/sbin/*.o kernel.elf kernel.iso
-	rm -rf iso
+	rm -rf $(OBJ) $(KERNEL_BIN) $(ISO_NAME) iso
 
-iso: kernel.elf
-	mkdir -p iso/boot/grub
-	cp kernel.elf iso/boot/kernel.elf
-	echo 'set timeout=0\ndefault=0\nmenuentry "MinimalOS" {\n multiboot2 /boot/kernel.elf\n}' > iso/boot/grub/grub.cfg
-	grub-mkrescue -o kernel.iso iso
-
-run: iso
-	qemu-system-i386 -cdrom kernel.iso
+.PHONY: all clean
