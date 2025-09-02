@@ -1,5 +1,5 @@
 #
-# [Cygnus] - [src/kernel.c]
+# [Cygnus] - [src/boot.s]
 #
 # Copyright (C) [2025] [Szymon Grajner]
 #
